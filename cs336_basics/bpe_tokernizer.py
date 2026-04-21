@@ -12,10 +12,13 @@ class BPETokenizer:
         self._special_tokens = special_tokens
 
         self._token_to_id = {token: id for id, token in self._vocab.items()}
+        self._merge_to_order = {merge: idx for idx, merge in enumerate(self._merges)}
+        self._merge_count = len(self._merges)
 
         self._delimiter = None
         if special_tokens:
-            self._delimiter = f"{('|'.join(re.escape(token) for token in special_tokens))}"
+            self._special_tokens = sorted(special_tokens, key=lambda x: len(x), reverse=True)
+            self._delimiter = f"({'|'.join(re.escape(token) for token in self._special_tokens)})"
         self._pat = r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
     
     def from_files(cls, vocab_filepath: str, merges_filepath: str, special_tokens: list[str] | None=None) -> "BPETokenizer":
@@ -35,7 +38,7 @@ class BPETokenizer:
         if self._delimiter:
             for chunk in re.split(self._delimiter, text):
                 if chunk in self._special_tokens:
-                    encoding.append(self._token_to_id[chunk])
+                    encoding.append(self._token_to_id[chunk.encode('utf-8')])
                     continue
                 encoding.extend(self._encode_chunk(chunk))
         else:
@@ -54,17 +57,34 @@ class BPETokenizer:
     def _merge_pretoken(self, pre_token: PreToken):
         if len(pre_token) == 1:
             return pre_token
-        for i in range(len(pre_token)-1):
-            if (pre_token[i], pre_token[i+1]) in self._merges:
-                pre_token = (pre_token[:i] + (pre_token[i]+pre_token[i+1],) + pre_token[i+2:])
-                return self._merge_pretoken(pre_token)
-        return pre_token
+        first_merge_idx_pair = (0, 1)
+        first_merge_pair = (pre_token[0], pre_token[1])
+        first_merge_order = self._merge_to_order.get(first_merge_pair, self._merge_count+1)
+        for i in range(1, len(pre_token)-1):
+            new_merge_idx_pair = (i, i+1)
+            new_merge_pair = (pre_token[i], pre_token[i+1])
+            new_merge_order = self._merge_to_order.get(new_merge_pair, self._merge_count+1)
+            if new_merge_order < first_merge_order:
+                first_merge_idx_pair = new_merge_idx_pair
+                first_merge_pair = new_merge_pair
+                first_merge_order = new_merge_order
+
+        if first_merge_order == self._merge_count+1:
+            return pre_token
+        else:
+            pre_token = (pre_token[:first_merge_idx_pair[0]] + (first_merge_pair[0]+first_merge_pair[1],) + pre_token[first_merge_idx_pair[1]+1:])
+            return self._merge_pretoken(pre_token)
 
     def encode_iterable(self, iterable: Iterable[str]) -> Iterator[int]:
         pass
 
     def decode(self, ids: list[int]) -> str:
-        pass
+        binary_text = b''
+        for id in ids:
+            binary_text += self._vocab.get(id, "\ufffd".encode("utf-8"))
+        
+        return binary_text.decode("utf-8", errors='replace')
+
 
 if __name__ == "__main__":
     tokenizer = BPETokenizer(
@@ -89,4 +109,5 @@ if __name__ == "__main__":
             (b' a', b't'),
         ],
     )
-    print(tokenizer.encode("the cat ate"))
+    # print(tokenizer.encode("the cat ate"))
+    print(tokenizer.decode([9,20, 7,1,5,10,3]))
