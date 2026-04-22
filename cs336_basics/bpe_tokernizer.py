@@ -21,17 +21,21 @@ class BPETokenizer:
             self._delimiter = f"({'|'.join(re.escape(token) for token in self._special_tokens)})"
         self._pat = r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
     
+    @classmethod
     def from_files(cls, vocab_filepath: str, merges_filepath: str, special_tokens: list[str] | None=None) -> "BPETokenizer":
         with open(vocab_filepath, 'r', encoding="utf-8") as f:
-            vocab = json.loads(f)
+            vocab = json.load(f)
+        
+        vocab_bytes = {int(k): v.encode("utf-8") for k,v in vocab.items()}
         
         merges = []
         with open (merges_filepath, "r", encoding="utf-8")as f:
             lines = f.readlines()
             for line in lines:
-                merges.append(tuple(line.split()))
+                merge = tuple(elem.encode("utf-8") for elem in line.rstrip().split('  '))
+                merges.append(merge)
         
-        return cls(vocab, merges, special_tokens)
+        return cls(vocab_bytes, merges, special_tokens)
 
     def encode(self, text: str) -> list[int]:
         encoding = []
@@ -76,7 +80,9 @@ class BPETokenizer:
             return self._merge_pretoken(pre_token)
 
     def encode_iterable(self, iterable: Iterable[str]) -> Iterator[int]:
-        pass
+        for chunk in iterable:
+            for id in self.encode(chunk):
+                yield id
 
     def decode(self, ids: list[int]) -> str:
         binary_text = b''
@@ -87,27 +93,35 @@ class BPETokenizer:
 
 
 if __name__ == "__main__":
-    tokenizer = BPETokenizer(
-        vocab = {
-            0: b' ',
-            1: b'a',
-            2: b'c',
-            3: b'e',
-            4: b'h',
-            5: b't',
-            6: b'th',
-            7: b' c',
-            8: b' a',
-            9: b'the',
-            10: b' at'
-        },
-        merges= [
-            (b't', b'h'),
-            (b' ', b'c'),
-            (b' ', b'a'),
-            (b'th', b'e'),
-            (b' a', b't'),
-        ],
+    # tokenizer = BPETokenizer(
+    #     vocab = {
+    #         0: b' ',
+    #         1: b'a',
+    #         2: b'c',
+    #         3: b'e',
+    #         4: b'h',
+    #         5: b't',
+    #         6: b'th',
+    #         7: b' c',
+    #         8: b' a',
+    #         9: b'the',
+    #         10: b' at'
+    #     },
+    #     merges= [
+    #         (b't', b'h'),
+    #         (b' ', b'c'),
+    #         (b' ', b'a'),
+    #         (b'th', b'e'),
+    #         (b' a', b't'),
+    #     ],
+    # )
+    # # print(tokenizer.encode("the cat ate"))
+    # print(tokenizer.decode([9,20, 7,1,5,10,3]))
+    tokenizer = BPETokenizer.from_files(
+        vocab_filepath="data/output/vocab_tinystories.json",
+        merges_filepath="data/output/merges_tinystories.txt",
+        special_tokens=["<|endoftext|>"]
     )
-    # print(tokenizer.encode("the cat ate"))
-    print(tokenizer.decode([9,20, 7,1,5,10,3]))
+    with open("data/TinyStoriesV2-GPT4-valid.txt", "r") as f:
+        all_ids = [id for id in tokenizer.encode_iterable(f)]
+        print(all_ids)
