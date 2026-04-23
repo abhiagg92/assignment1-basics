@@ -11,7 +11,7 @@ from torch import Tensor
 
 from cs336_basics.bpe_trainer import train_bpe
 from cs336_basics.bpe_tokernizer import BPETokenizer
-from cs336_basics.models import Linear, Embedding, RMSNorm
+from cs336_basics.models import Linear, Embedding, RMSNorm, SwiGLU
 
 
 def run_linear(
@@ -90,7 +90,11 @@ def run_swiglu(
     # swiglu.w1.weight.data = w1_weight
     # swiglu.w2.weight.data = w2_weight
     # swiglu.w3.weight.data = w3_weight
-    raise NotImplementedError
+    swiglu = SwiGLU(d_model, d_ff)
+    swiglu.l1.W.data = w1_weight.T
+    swiglu.l2.W.data = w2_weight.T
+    swiglu.l3.W.data = w3_weight.T
+    return swiglu(in_features)
 
 
 def run_scaled_dot_product_attention(
