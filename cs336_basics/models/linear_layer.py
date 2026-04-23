@@ -4,7 +4,7 @@ from einops import einsum
 
 
 
-class LinearLayer(nn.Module):
+class Linear(nn.Module):
     def __init__(self, in_features, out_features, device=None, dtype=None):
         super().__init__()
         init_std = (2/(in_features+out_features))**0.5
