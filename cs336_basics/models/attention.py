@@ -28,15 +28,18 @@ class MultiHeadAttention(nn.Module):
         super().__init__()
 
         self.num_heads = num_heads
-        self.l1 = Linear(d_model, 3*d_model, device=device, dtype=dtype)
-        self.l2 = Linear(d_model, d_model, device=device, dtype=dtype)
+        self.q_proj = Linear(d_model, d_model, device=device, dtype=dtype)
+        self.k_proj = Linear(d_model, d_model, device=device, dtype=dtype)
+        self.v_proj = Linear(d_model, d_model, device=device, dtype=dtype)
+        self.output_proj = Linear(d_model, d_model, device=device, dtype=dtype)
         self.rope = None
         if theta is not None and max_seq_len is not None:
             self.rope = RotaryPositionalEmbedding(theta, d_model//num_heads, max_seq_len, device)
     
     def forward(self, x: Float[Tensor, "batch_size seq_len d_model"], token_positions: Int[Tensor, " ... seq_len"] | None = None):
         batch, seq_len, _ = x.shape
-        x = self.l1(x)
+        weight = torch.cat([self.q_proj.weight, self.k_proj.weight, self.v_proj.weight], dim=0)
+        x = einsum(x, weight, "... d_in, d_out d_in -> ... d_out")
         Qs, Ks, Vs = x.chunk(chunks=3, dim=-1)
         Qh = torch.stack(Qs.chunk(chunks=self.num_heads, dim=-1), dim=1)
         Kh = torch.stack(Ks.chunk(chunks=self.num_heads, dim=-1), dim=1)
@@ -48,4 +51,4 @@ class MultiHeadAttention(nn.Module):
         mask = torch.triu(torch.ones((batch, self.num_heads, seq_len, seq_len))).transpose(-2, -1).to(bool)
         attention = scaled_dot_product_attention(Qh, Kh, Vh, mask)
         attention_concat = rearrange(attention, 'b h seq d_k -> b seq (h d_k)')
-        return self.l2(attention_concat)
+        return self.output_proj(attention_concat)

@@ -11,6 +11,7 @@ from torch import Tensor
 
 from cs336_basics.bpe_trainer import train_bpe
 from cs336_basics.bpe_tokernizer import BPETokenizer
+from cs336_basics.transformer_lm import TransformerLM
 from cs336_basics.models import(
     Linear,
     Embedding,
@@ -67,7 +68,7 @@ def run_embedding(
     """
 
     embedding = Embedding(vocab_size, d_model)
-    embedding.embeddings.data = weights
+    embedding.weight.data = weights
     return embedding(token_ids)
 
 
@@ -160,9 +161,10 @@ def run_multihead_self_attention(
         implementation with the given QKV projection weights and input features.
     """
     mha = MultiHeadAttention(d_model, num_heads)
-    weights = torch.concat((q_proj_weight, k_proj_weight, v_proj_weight), dim=0)
-    mha.l1.weight.data = weights
-    mha.l2.weight.data = o_proj_weight
+    mha.q_proj.weight.data = q_proj_weight
+    mha.k_proj.weight.data = k_proj_weight
+    mha.v_proj.weight.data = v_proj_weight
+    mha.output_proj.weight.data = o_proj_weight
     return mha(in_features)
 
 
@@ -204,9 +206,10 @@ def run_multihead_self_attention_with_rope(
         implementation with the given QKV projection weights and input features.
     """
     mha = MultiHeadAttention(d_model, num_heads, theta, max_seq_len)
-    weights = torch.concat((q_proj_weight, k_proj_weight, v_proj_weight), dim=0)
-    mha.l1.weight.data = weights
-    mha.l2.weight.data = o_proj_weight
+    mha.q_proj.weight.data = q_proj_weight
+    mha.k_proj.weight.data = k_proj_weight
+    mha.v_proj.weight.data = v_proj_weight
+    mha.output_proj.weight.data = o_proj_weight
     return mha(in_features, token_positions)
 
 
@@ -304,14 +307,7 @@ def run_transformer_block(
         running the Transformer block on the input features while using RoPE.
     """
     transformer = Transformer(d_model, num_heads, d_ff, theta, max_seq_len)
-    attn_weights = torch.concat((weights["attn.q_proj.weight"], weights["attn.k_proj.weight"], weights["attn.v_proj.weight"]), dim=0)
-    transformer.attn.l1.weight.data = attn_weights
-    transformer.attn.l2.weight.data = weights["attn.output_proj.weight"]
-    transformer.ln1.weight.data = weights["ln1.weight"]
-    transformer.ln2.weight.data = weights["ln2.weight"]
-    transformer.ffn.w1.weight.data = weights["ffn.w1.weight"]
-    transformer.ffn.w2.weight.data = weights["ffn.w2.weight"]
-    transformer.ffn.w3.weight.data = weights["ffn.w3.weight"]
+    transformer.load_state_dict(weights)
     return transformer(in_features)
 
 
@@ -394,7 +390,9 @@ def run_transformer_lm(
         Float[Tensor, "batch_size sequence_length vocab_size"]: Tensor with the predicted unnormalized
         next-word distribution for each token.
     """
-    raise NotImplementedError
+    lm = TransformerLM(vocab_size, num_layers, d_model, num_heads, d_ff, rope_theta, context_length)
+    lm.load_state_dict(weights)
+    return lm(in_indices)
 
 
 def run_rmsnorm(
