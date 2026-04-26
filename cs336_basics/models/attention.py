@@ -1,6 +1,6 @@
 import torch
 from torch import Tensor, nn
-from jaxtyping import Float, Bool
+from jaxtyping import Float, Bool, Int
 from einops import einsum, rearrange
 
 from cs336_basics.models import softmax, Linear, RotaryPositionalEmbedding
@@ -30,16 +30,21 @@ class MultiHeadAttention(nn.Module):
         self.num_heads = num_heads
         self.l1 = Linear(d_model, 3*d_model, device=device, dtype=dtype)
         self.l2 = Linear(d_model, d_model, device=device, dtype=dtype)
+        self.rope = None
         if theta is not None and max_seq_len is not None:
-            self.rope = RotaryPositionalEmbedding(theta, d_model, max_seq_len, device)
+            self.rope = RotaryPositionalEmbedding(theta, d_model//num_heads, max_seq_len, device)
     
-    def forward(self, x: Float[Tensor, "batch_size seq_len d_model"]):
+    def forward(self, x: Float[Tensor, "batch_size seq_len d_model"], token_positions: Int[Tensor, " ... sequence_length"] | None = None):
         batch, seq_len, _ = x.shape
         x = self.l1(x)
         Qs, Ks, Vs = x.chunk(chunks=3, dim=-1)
         Qh = torch.stack(Qs.chunk(chunks=self.num_heads, dim=-1), dim=1)
         Kh = torch.stack(Ks.chunk(chunks=self.num_heads, dim=-1), dim=1)
         Vh = torch.stack(Vs.chunk(chunks=self.num_heads, dim=-1), dim=1)
+
+        if self.rope:
+            Qh = self.rope(Qh, token_positions)
+            Kh = self.rope(Kh, token_positions)
         mask = torch.triu(torch.ones((batch, self.num_heads, seq_len, seq_len))).transpose(-2, -1).to(bool)
         attention = scaled_dot_product_attention(Qh, Kh, Vh, mask)
         attention_concat = rearrange(attention, 'b h seq d_k -> b seq (h d_k)')
