@@ -10,11 +10,11 @@ class RMSNorm(nn.Module):
         self.d_model = d_model
         self.eps = eps
 
-        self.gain = nn.Parameter(torch.ones(self.d_model, dtype=dtype, device=device))
+        self.weight = nn.Parameter(torch.ones(self.d_model, dtype=dtype, device=device))
 
     def forward(self, x: Float[Tensor, "batch seq_len d_model"]) -> Float[Tensor, "batch seq_len d_model"]:
         in_dtype = x.dtype
         x = x.to(torch.float32)
         rms = torch.sqrt(x.square().sum(-1, keepdim=True)/self.d_model+self.eps)
-        x = (x/rms)*self.gain
+        x = (x/rms)*self.weight
         return x.to(in_dtype)

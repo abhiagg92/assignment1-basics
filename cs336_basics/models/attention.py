@@ -34,7 +34,7 @@ class MultiHeadAttention(nn.Module):
         if theta is not None and max_seq_len is not None:
             self.rope = RotaryPositionalEmbedding(theta, d_model//num_heads, max_seq_len, device)
     
-    def forward(self, x: Float[Tensor, "batch_size seq_len d_model"], token_positions: Int[Tensor, " ... sequence_length"] | None = None):
+    def forward(self, x: Float[Tensor, "batch_size seq_len d_model"], token_positions: Int[Tensor, " ... seq_len"] | None = None):
         batch, seq_len, _ = x.shape
         x = self.l1(x)
         Qs, Ks, Vs = x.chunk(chunks=3, dim=-1)

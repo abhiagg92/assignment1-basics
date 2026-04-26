@@ -19,7 +19,8 @@ from cs336_basics.models import(
     RotaryPositionalEmbedding,
     softmax,
     scaled_dot_product_attention,
-    MultiHeadAttention
+    MultiHeadAttention,
+    Transformer
 )
 
 
@@ -42,7 +43,7 @@ def run_linear(
         Float[Tensor, "... d_out"]: The transformed output of your linear module.
     """
     linear_layer = Linear(d_in, d_out)
-    linear_layer.W.data = weights
+    linear_layer.weight.data = weights
     return linear_layer(in_features)
 
 
@@ -100,9 +101,9 @@ def run_swiglu(
     # swiglu.w2.weight.data = w2_weight
     # swiglu.w3.weight.data = w3_weight
     swiglu = SwiGLU(d_model, d_ff)
-    swiglu.l1.W.data = w1_weight
-    swiglu.l2.W.data = w2_weight
-    swiglu.l3.W.data = w3_weight
+    swiglu.w1.weight.data = w1_weight
+    swiglu.w2.weight.data = w2_weight
+    swiglu.w3.weight.data = w3_weight
     return swiglu(in_features)
 
 
@@ -160,8 +161,8 @@ def run_multihead_self_attention(
     """
     mha = MultiHeadAttention(d_model, num_heads)
     weights = torch.concat((q_proj_weight, k_proj_weight, v_proj_weight), dim=0)
-    mha.l1.W.data = weights
-    mha.l2.W.data = o_proj_weight
+    mha.l1.weight.data = weights
+    mha.l2.weight.data = o_proj_weight
     return mha(in_features)
 
 
@@ -204,8 +205,8 @@ def run_multihead_self_attention_with_rope(
     """
     mha = MultiHeadAttention(d_model, num_heads, theta, max_seq_len)
     weights = torch.concat((q_proj_weight, k_proj_weight, v_proj_weight), dim=0)
-    mha.l1.W.data = weights
-    mha.l2.W.data = o_proj_weight
+    mha.l1.weight.data = weights
+    mha.l2.weight.data = o_proj_weight
     return mha(in_features, token_positions)
 
 
@@ -302,7 +303,16 @@ def run_transformer_block(
         Float[Tensor, "batch sequence_length d_model"] Tensor with the output of
         running the Transformer block on the input features while using RoPE.
     """
-    raise NotImplementedError
+    transformer = Transformer(d_model, num_heads, d_ff, theta, max_seq_len)
+    attn_weights = torch.concat((weights["attn.q_proj.weight"], weights["attn.k_proj.weight"], weights["attn.v_proj.weight"]), dim=0)
+    transformer.attn.l1.weight.data = attn_weights
+    transformer.attn.l2.weight.data = weights["attn.output_proj.weight"]
+    transformer.ln1.weight.data = weights["ln1.weight"]
+    transformer.ln2.weight.data = weights["ln2.weight"]
+    transformer.ffn.w1.weight.data = weights["ffn.w1.weight"]
+    transformer.ffn.w2.weight.data = weights["ffn.w2.weight"]
+    transformer.ffn.w3.weight.data = weights["ffn.w3.weight"]
+    return transformer(in_features)
 
 
 def run_transformer_lm(
@@ -408,7 +418,7 @@ def run_rmsnorm(
         RMSNorm of the `in_features`.
     """
     rmsnorm = RMSNorm(d_model, eps)
-    rmsnorm.gain.data = weights
+    rmsnorm.weight.data = weights
     return rmsnorm(in_features)
 
 
