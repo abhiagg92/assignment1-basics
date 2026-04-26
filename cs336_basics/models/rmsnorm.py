@@ -10,7 +10,7 @@ class RMSNorm(nn.Module):
         self.d_model = d_model
         self.eps = eps
 
-        self.gain = nn.Parameter(torch.ones(self.d_model))
+        self.gain = nn.Parameter(torch.ones(self.d_model, dtype=dtype, device=device))
 
     def forward(self, x: Float[Tensor, "batch seq_len d_model"]) -> Float[Tensor, "batch seq_len d_model"]:
         in_dtype = x.dtype
