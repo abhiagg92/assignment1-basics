@@ -40,7 +40,7 @@ def run_linear(
         Float[Tensor, "... d_out"]: The transformed output of your linear module.
     """
     linear_layer = Linear(d_in, d_out)
-    linear_layer.W.data = weights.T
+    linear_layer.W.data = weights
     return linear_layer(in_features)
 
 
@@ -98,9 +98,9 @@ def run_swiglu(
     # swiglu.w2.weight.data = w2_weight
     # swiglu.w3.weight.data = w3_weight
     swiglu = SwiGLU(d_model, d_ff)
-    swiglu.l1.W.data = w1_weight.T
-    swiglu.l2.W.data = w2_weight.T
-    swiglu.l3.W.data = w3_weight.T
+    swiglu.l1.W.data = w1_weight
+    swiglu.l2.W.data = w2_weight
+    swiglu.l3.W.data = w3_weight
     return swiglu(in_features)
 
 
