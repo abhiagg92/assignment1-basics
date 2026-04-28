@@ -12,6 +12,7 @@ from torch import Tensor
 from cs336_basics.bpe_trainer import train_bpe
 from cs336_basics.bpe_tokernizer import BPETokenizer
 from cs336_basics.transformer_lm import TransformerLM
+from cs336_basics.gradient_clipping import clip_gradients
 from cs336_basics.models import(
     Linear,
     Embedding,
@@ -503,7 +504,7 @@ def run_gradient_clipping(parameters: Iterable[torch.nn.Parameter], max_l2_norm:
 
     The gradients of the parameters (parameter.grad) should be modified in-place.
     """
-    raise NotImplementedError
+    return clip_gradients(parameters, max_l2_norm)
 
 
 def get_adamw_cls() -> Any:
