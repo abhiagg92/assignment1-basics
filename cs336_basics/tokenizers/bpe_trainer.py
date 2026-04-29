@@ -4,7 +4,7 @@ from multiprocessing import Pool
 import json
 from tqdm import tqdm
 
-from cs336_basics.pretokenization_example import find_chunk_boundaries
+from cs336_basics.tokenizers.pretokenization_example import find_chunk_boundaries
 
 # Type aliases for readability
 ByteToken = bytes

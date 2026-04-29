@@ -9,11 +9,9 @@ import torch
 from jaxtyping import Bool, Float, Int
 from torch import Tensor
 
-from cs336_basics.bpe_trainer import train_bpe
-from cs336_basics.bpe_tokernizer import BPETokenizer
-from cs336_basics.transformer_lm import TransformerLM
-from cs336_basics.gradient_clipping import clip_gradients
-from cs336_basics.checkpointing import save_checkpoint, load_checkpoint
+from cs336_basics.tokenizers import train_bpe, BPETokenizer
+from cs336_basics.utils.gradient_clipping import clip_gradients
+from cs336_basics.utils.checkpointing import save_checkpoint, load_checkpoint
 from cs336_basics.models import(
     Linear,
     Embedding,
@@ -23,7 +21,8 @@ from cs336_basics.models import(
     softmax,
     scaled_dot_product_attention,
     MultiHeadAttention,
-    Transformer
+    Transformer,
+    TransformerLM
 )
 from cs336_basics.losses import cross_entropy
 from cs336_basics.optimizers import AdamW
