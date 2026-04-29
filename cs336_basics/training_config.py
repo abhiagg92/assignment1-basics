@@ -13,7 +13,8 @@ class TrainingConfig(BaseModel):
     rope_theta: int
     context_length: int
 
-    num_iterations: int
+    num_train_iters: int
+    num_val_iters: int
     batch_size: int
 
     lr: float
@@ -27,6 +28,9 @@ class TrainingConfig(BaseModel):
 
     resume: bool
     ckpt_name: str | None
+
+    train_file_path: str
+    val_file_path: str
 
     @classmethod
     def from_file(cls, file_path: str):
