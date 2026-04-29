@@ -165,3 +165,4 @@ data/
 .vscode
 profile.py
 *.prof
+logs
