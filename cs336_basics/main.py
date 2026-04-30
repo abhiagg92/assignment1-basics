@@ -3,7 +3,7 @@ import os
 import wandb
 
 from cs336_basics.trainer import Trainer
-from cs336_basics.training_config import TrainingConfig
+from cs336_basics.config import TrainingConfig
 
 
 def init_wandb(training_config: TrainingConfig):

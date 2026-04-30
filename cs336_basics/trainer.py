@@ -4,7 +4,7 @@ from pathlib import Path
 import wandb
 import numpy as np
 
-from cs336_basics.training_config import TrainingConfig
+from cs336_basics.config import TrainingConfig
 from cs336_basics.models import TransformerLM
 from cs336_basics.dataloader import get_batch
 from cs336_basics.optimizers import AdamW
