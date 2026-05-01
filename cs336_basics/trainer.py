@@ -3,6 +3,7 @@ import torch
 from pathlib import Path
 import wandb
 import numpy as np
+from tqdm import tqdm
 
 from cs336_basics.config import TrainingConfig
 from cs336_basics.models import TransformerLM
@@ -19,10 +20,10 @@ class Trainer:
         self._context_len = config.context_length
         self._start_iter_num = 0
 
-        self._device = torch.device("cuda")
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self._train_data = np.memmap(config.train_file_path, np.int64, mode="r")
-        self._val_data = np.memmap(config.val_file_path, np.int64, mode="r")
+        self._train_data = np.memmap(config.train_file_path, np.uint16, mode="r")
+        self._val_data = np.memmap(config.val_file_path, np.uint16, mode="r")
 
         self._model = TransformerLM(
             vocab_size=config.vocab_size,
@@ -32,6 +33,7 @@ class Trainer:
             d_ff=config.d_ff,
             theta=config.rope_theta,
             context_length=config.context_length,
+            device=self._device
         )
         self._model.to(self._device)
 
@@ -47,10 +49,11 @@ class Trainer:
             ckpt_dir = os.path.join(self._config.log_dir, self._config.exp_name)
             ckpt_path = self._get_ckpt_file(ckpt_dir)
             self._start_iter_num = load_checkpoint(ckpt_path, self._model, self._optimizer)
+            print(f"Training resumed at {self._start_iter_num} iteration with ckpt at {ckpt_path}")
 
     def train(self):
         num_iters = self._config.num_train_iters
-        for i in range(self._start_iter_num, num_iters):
+        for i in tqdm(range(self._start_iter_num, num_iters), desc="Training"):
             x, y = get_batch(self._train_data, self._batch_size, self._context_len, self._device)
             self._optimizer.zero_grad()
 
@@ -59,12 +62,13 @@ class Trainer:
 
             loss.backward()
             self._optimizer.step()
+            wandb.log({"train_loss": loss.item()}, step=i)
 
-            if i % self._config.ckpt_interval:
+            if i > 0 and i % self._config.ckpt_interval == 0:
                 val_loss = self.validate()
-                outpath = os.path.join(self._config.log_dir, self._config.exp_name, f"model{i:5d}.pt")
+                outpath = os.path.join(self._config.log_dir, self._config.exp_name, f"model{i}.pt")
                 save_checkpoint(self._model, self._optimizer, i, outpath)
-                wandb.log({"train_loss": loss.item(), "val_loss": val_loss})
+                wandb.log({"val_loss": val_loss}, step=i)
                 self._model.train()
 
     @torch.no_grad()

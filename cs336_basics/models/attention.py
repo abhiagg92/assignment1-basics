@@ -27,6 +27,7 @@ class MultiHeadAttention(nn.Module):
     def __init__(self, d_model: int, num_heads: int, theta: int | None=None, max_seq_len: int | None=None, device=None, dtype=None):
         super().__init__()
 
+        self.device = device
         self.num_heads = num_heads
         self.q_proj = Linear(d_model, d_model, device=device, dtype=dtype)
         self.k_proj = Linear(d_model, d_model, device=device, dtype=dtype)
@@ -48,7 +49,7 @@ class MultiHeadAttention(nn.Module):
         if self.rope:
             Qh = self.rope(Qh, token_positions)
             Kh = self.rope(Kh, token_positions)
-        mask = torch.triu(torch.ones((batch, self.num_heads, seq_len, seq_len))).transpose(-2, -1).to(bool)
+        mask = torch.triu(torch.ones((batch, self.num_heads, seq_len, seq_len), device=self.device)).transpose(-2, -1).to(bool)
         attention = scaled_dot_product_attention(Qh, Kh, Vh, mask)
         attention_concat = rearrange(attention, 'b h seq d_k -> b seq (h d_k)')
         return self.output_proj(attention_concat)

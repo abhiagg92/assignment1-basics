@@ -7,7 +7,7 @@ class RotaryPositionalEmbedding(nn.Module):
     def __init__(self, theta: float, d_k: int, max_seq_len: int, device=None):
         super().__init__()
 
-        angles = torch.Tensor([[i/(theta**((2*k-2)/d_k)) for k in range(1, d_k//2+1)] for i in range(max_seq_len)], device=device)
+        angles = torch.tensor([[i/(theta**((2*k-2)/d_k)) for k in range(1, d_k//2+1)] for i in range(max_seq_len)], device=device)
         cos_angles = torch.cos(angles).repeat_interleave(2, dim=1)
         sin_angles = torch.sin(angles).repeat_interleave(2, dim=1)
         sin_angles[:, ::2] *= -1

@@ -19,9 +19,9 @@ class Transformer(nn.Module):
         batch, seq_len, _ = x.shape
         norm1 = self.ln1(x)
         token_positions = torch.arange(seq_len, dtype=torch.int, device=self.device)  # shape (seq_len,)
-        token_positions = token_positions.unsqueeze(0).repeat(batch, 1)  # shape (batch, seq_len)
-        x += self.attn(norm1, token_positions)
+        token_positions = token_positions.unsqueeze(0)  # shape (batch, seq_len)
+        x = x + self.attn(norm1, token_positions)
 
         norm2 = self.ln2(x)
-        x += self.ffn(norm2)
+        x = x + self.ffn(norm2)
         return x

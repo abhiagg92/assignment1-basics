@@ -166,3 +166,4 @@ data/
 profile.py
 *.prof
 logs
+wandb

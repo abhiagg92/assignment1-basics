@@ -1,5 +1,6 @@
 import json
-from pydantic import BaseModel
+from datetime import datetime
+from pydantic import BaseModel, model_validator
 
 
 class TrainingConfig(BaseModel):
@@ -26,11 +27,19 @@ class TrainingConfig(BaseModel):
     log_dir: str
     ckpt_interval: int
 
-    resume: bool
-    ckpt_name: str | None
+    resume: bool = False
+    ckpt_name: str | None = None
 
     train_file_path: str
     val_file_path: str
+
+    @model_validator(mode="after")
+    def add_timestamp(self):
+        if self.resume:
+            return self
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.exp_name = f"{self.exp_name}_{ts}"
+        return self
 
     @classmethod
     def from_file(cls, file_path: str):
