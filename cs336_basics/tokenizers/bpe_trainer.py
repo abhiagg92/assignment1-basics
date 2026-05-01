@@ -277,20 +277,20 @@ def train_bpe(
     bpe_trainer.fit(input_path)
     vocab = bpe_trainer.vocab
     merges = bpe_trainer.merges
-    vocab_str = {str(k): v.decode('utf-8', 'replace') for k, v in vocab.items()}
-    with open('vocab.json', 'w') as f:
+    vocab_str = {k: v.decode('latin-1') for k, v in vocab.items()}
+    with open('vocab.json', 'w', encoding="utf-8") as f:
         json.dump(vocab_str, f, ensure_ascii=False, indent=2)
     
     with open('merges.txt', 'w', encoding='utf-8') as f:
         for a, b in merges:
-            f.write(f"{a.decode('utf-8', 'replace')} {b.decode('utf-8', 'replace')}\n")
+            f.write(f"{a.decode('latin-1')} {b.decode('latin-1')}\n")
     return vocab, merges
 
 
 if __name__ == "__main__":
     # import cProfile
     import time
-    input_path = "/home/gulgul/Downloads/cs336/assignment1-basics/data/TinyStoriesV2-GPT4-train.txt"
+    input_path = "/home/gulgul/Downloads/cs336/assignment1-basics/data/TinyStoriesV2-GPT4-valid.txt"
     # cProfile.run('tokenize(input_path, 10000)', 'profile_output_v1.prof')
     start_time = time.time()
     train_bpe(input_path, 10000)

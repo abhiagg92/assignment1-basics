@@ -26,13 +26,13 @@ class BPETokenizer:
         with open(vocab_filepath, 'r', encoding="utf-8") as f:
             vocab = json.load(f)
         
-        vocab_bytes = {int(k): v.encode("utf-8") for k,v in vocab.items()}
+        vocab_bytes = {int(k): v.encode("latin-1") for k,v in vocab.items()}
         
         merges = []
         with open (merges_filepath, "r", encoding="utf-8")as f:
             lines = f.readlines()
             for line in lines:
-                merge = tuple(elem.encode("utf-8") for elem in line.rstrip().split('  '))
+                merge = tuple(elem.encode("latin-1") for elem in line.rstrip().split('  '))
                 merges.append(merge)
         
         return cls(vocab_bytes, merges, special_tokens)
@@ -118,8 +118,8 @@ if __name__ == "__main__":
     # # print(tokenizer.encode("the cat ate"))
     # print(tokenizer.decode([9,20, 7,1,5,10,3]))
     tokenizer = BPETokenizer.from_files(
-        vocab_filepath="data/output/vocab_tinystories.json",
-        merges_filepath="data/output/merges_tinystories.txt",
+        vocab_filepath="vocab.json",
+        merges_filepath="merges.txt",
         special_tokens=["<|endoftext|>"]
     )
     with open("data/TinyStoriesV2-GPT4-valid.txt", "r") as f:
