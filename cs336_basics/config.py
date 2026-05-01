@@ -52,10 +52,6 @@ class DecoderConfig(BaseModel):
     rope_theta: int
     context_length: int
 
-    num_train_iters: int
-    num_val_iters: int
-    batch_size: int
-
     vocab_filepath: str
     merges_filepath: str
     special_tokens: list[str]

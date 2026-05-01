@@ -1,6 +1,7 @@
 import json
 from typing import Iterable, Iterator
 import regex as re
+import numpy as np
 
 ByteToken = bytes
 PreToken = tuple[ByteToken, ...]
@@ -93,35 +94,16 @@ class BPETokenizer:
 
 
 if __name__ == "__main__":
-    # tokenizer = BPETokenizer(
-    #     vocab = {
-    #         0: b' ',
-    #         1: b'a',
-    #         2: b'c',
-    #         3: b'e',
-    #         4: b'h',
-    #         5: b't',
-    #         6: b'th',
-    #         7: b' c',
-    #         8: b' a',
-    #         9: b'the',
-    #         10: b' at'
-    #     },
-    #     merges= [
-    #         (b't', b'h'),
-    #         (b' ', b'c'),
-    #         (b' ', b'a'),
-    #         (b'th', b'e'),
-    #         (b' a', b't'),
-    #     ],
-    # )
-    # # print(tokenizer.encode("the cat ate"))
-    # print(tokenizer.decode([9,20, 7,1,5,10,3]))
+    from tqdm import tqdm
     tokenizer = BPETokenizer.from_files(
-        vocab_filepath="vocab.json",
-        merges_filepath="merges.txt",
+        vocab_filepath="data/output/vocab_tinystories_v1.json",
+        merges_filepath="data/output/merges_tinystories_v1.txt",
         special_tokens=["<|endoftext|>"]
     )
-    with open("data/TinyStoriesV2-GPT4-valid.txt", "r") as f:
-        all_ids = [id for id in tokenizer.encode_iterable(f)]
-        print(all_ids)
+    all_ids = []
+    with open("data/TinyStoriesV2-GPT4-train.txt", "r") as f:
+        for _id in tqdm(tokenizer.encode_iterable(f)):
+            all_ids.append(_id)
+
+    token_ids = np.array(all_ids, dtype=np.uint16)
+    np.save("data/output/tinystories_train.npy", token_ids)

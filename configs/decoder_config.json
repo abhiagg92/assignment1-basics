@@ -1,0 +1,14 @@
+{
+    "vocab_size": "int",
+    "num_layers": "int",
+    "d_model": "int",
+    "num_heads": "int",
+    "d_ff": "int",
+    "rope_theta": "int",
+    "context_length": "int",
+    "vocab_filepath": "str",
+    "merges_filepath": "str",
+    "special_tokens": "list[str]",
+    "top_p": "float",
+    "temp": "float"
+}
