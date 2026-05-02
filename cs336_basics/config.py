@@ -60,6 +60,7 @@ class DecoderConfig(BaseModel):
     d_ff: int
     rope_theta: int
     context_length: int
+    ckpt_path: str
 
     vocab_filepath: str
     merges_filepath: str
@@ -67,3 +68,9 @@ class DecoderConfig(BaseModel):
 
     top_p: float
     temp: float
+
+    @classmethod
+    def from_file(cls, file_path: str):
+        with open(file_path, "r") as f:
+            config = json.load(f)   
+        return cls(**config)

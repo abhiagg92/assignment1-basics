@@ -33,7 +33,7 @@ class BPETokenizer:
         with open (merges_filepath, "r", encoding="utf-8")as f:
             lines = f.readlines()
             for line in lines:
-                merge = tuple(elem.encode("latin-1") for elem in line.rstrip().split('  '))
+                merge = tuple(elem.encode("latin-1") for elem in line.rstrip().split('\t'))
                 merges.append(merge)
         
         return cls(vocab_bytes, merges, special_tokens)
@@ -96,8 +96,8 @@ class BPETokenizer:
 if __name__ == "__main__":
     from tqdm import tqdm
     tokenizer = BPETokenizer.from_files(
-        vocab_filepath="data/output/vocab_tinystories_v1.json",
-        merges_filepath="data/output/merges_tinystories_v1.txt",
+        vocab_filepath="data/output/vocab_tinystories.json",
+        merges_filepath="data/output/merges_tinystories.txt",
         special_tokens=["<|endoftext|>"]
     )
     all_ids = []

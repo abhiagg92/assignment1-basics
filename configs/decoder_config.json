@@ -1,14 +1,15 @@
 {
-    "vocab_size": "int",
-    "num_layers": "int",
-    "d_model": "int",
-    "num_heads": "int",
-    "d_ff": "int",
-    "rope_theta": "int",
-    "context_length": "int",
-    "vocab_filepath": "str",
-    "merges_filepath": "str",
-    "special_tokens": "list[str]",
-    "top_p": "float",
-    "temp": "float"
+    "vocab_size": 10000,
+    "num_layers": 4,
+    "d_model": 512,
+    "num_heads": 16,
+    "d_ff": 1344,
+    "rope_theta": 10000,
+    "context_length": 256,
+    "vocab_filepath": "data/output/vocab_tinystories.json",
+    "merges_filepath": "data/output/merges_tinystories.txt",
+    "special_tokens": ["<|endoftext|>"],
+    "top_p": 0.9,
+    "temp": 0.8,
+    "ckpt_path": "logs/bug_fix_run_20260502_234505/model310000.pt"
 }

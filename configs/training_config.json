@@ -1,5 +1,5 @@
 {
-    "exp_name": "test_run_20260501_165738",
+    "exp_name": "bug_fix_run_20260502_234505",
     "vocab_size": 10000,
     "num_layers": 4,
     "d_model": 512,
@@ -10,7 +10,7 @@
     "num_train_iters": 320000,
     "num_val_iters": 1000,
     "batch_size": 4,
-    "lr": 1e-3,
+    "lr": 0.001,
     "weight_decay": 0.01,
     "beta1": 0.9,
     "beta2": 0.999,
@@ -18,7 +18,7 @@
     "log_dir": "logs",
     "ckpt_interval": 10000,
     "resume": true,
-    "ckpt_name": "model140000.pt",
+    "ckpt_name": "model230000.pt",
     "train_file_path": "data/output/tinystories_train.npy",
     "val_file_path": "data/output/tinystories_valid.npy"
 }

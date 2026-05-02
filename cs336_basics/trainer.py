@@ -70,6 +70,11 @@ class Trainer:
                 save_checkpoint(self._model, self._optimizer, i, outpath)
                 wandb.log({"val_loss": val_loss}, step=i)
                 self._model.train()
+        
+        val_loss = self.validate()
+        outpath = os.path.join(self._config.log_dir, self._config.exp_name, f"model{num_iters}.pt")
+        save_checkpoint(self._model, self._optimizer, num_iters, outpath)
+        wandb.log({"val_loss": val_loss}, step=num_iters)
 
     @torch.no_grad()
     def validate(self):

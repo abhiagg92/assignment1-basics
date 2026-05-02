@@ -278,12 +278,12 @@ def train_bpe(
     vocab = bpe_trainer.vocab
     merges = bpe_trainer.merges
     vocab_str = {k: v.decode('latin-1') for k, v in vocab.items()}
-    with open('data/output/vocab_tinystories_v1.json', 'w', encoding="utf-8") as f:
+    with open('data/output/vocab_tinystories.json', 'w', encoding="utf-8") as f:
         json.dump(vocab_str, f, ensure_ascii=False, indent=2)
     
-    with open('data/output/merges_tinystories_v1.txt', 'w', encoding='utf-8') as f:
+    with open('data/output/merges_tinystories.txt', 'w', encoding='utf-8') as f:
         for a, b in merges:
-            f.write(f"{a.decode('latin-1')} {b.decode('latin-1')}\n")
+            f.write(f"{a.decode('latin-1')}\t{b.decode('latin-1')}\n")
     return vocab, merges
 
 
